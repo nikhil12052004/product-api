@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products</title>
+<style>
+  /* ── Tokens ── */
+  :root {
+    --bg:        #F7F8FA;
+    --surface:   #FFFFFF;
+    --border:    #E4E7ED;
+    --text:      #141518;
+    --muted:     #7A7F8E;
+    --accent:    #2563EB;
+    --accent-lt: #EFF4FF;
+    --danger:    #DC2626;
+    --green:     #16A34A;
+    --radius:    10px;
+    --shadow:    0 1px 3px rgba(0,0,0,.07), 0 4px 12px rgba(0,0,0,.04);
+    --font:      'Inter', system-ui, sans-serif;
+    --mono:      'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -.3px;
+    color: var(--text);
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .api-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 5px;
+  }
+
+  /* ── Layout ── */
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+  }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .toolbar-left { display: flex; gap: 10px; align-items: center; flex: 1; flex-wrap: wrap; }
+  .toolbar-right { display: flex; gap: 10px; align-items: center; }
+
+  select, input[type="search"] {
+    height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13.5px;
+    padding: 0 12px;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  select:focus, input[type="search"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+
+  input[type="search"] { width: 220px; }
+
+  .limit-select { width: 110px; }
+  .cat-select   { width: 160px; }
+  .dir-select   { width: 115px; }
+
+  /* ── Stats bar ── */
+  .stats {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 20px;
+  }
+
+  .stats strong { color: var(--text); }
+
+  /* ── Grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: var(--shadow);
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .card-name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -.15px;
+  }
+
+  .card-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .card-category {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-lt);
+    padding: 2px 8px;
+    border-radius: 4px;
+    align-self: flex-start;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-price {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -.4px;
+    color: var(--text);
+  }
+
+  .card-updated {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── Skeleton ── */
+  .skeleton-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .skel {
+    background: linear-gradient(90deg, #f0f2f5 25%, #e4e7ed 50%, #f0f2f5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 4px;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Pagination ── */
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    gap: 12px;
+  }
+
+  .btn {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 7px;
+    font-family: var(--font);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: background .12s, border-color .12s, opacity .12s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn:hover:not(:disabled) { background: var(--bg); border-color: #c5cad4; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover:not(:disabled) { background: #1d4ed8; border-color: #1d4ed8; }
+
+  .page-info {
+    font-size: 12.5px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ── Cursor display ── */
+  .cursor-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .cursor-bar label { color: var(--text); font-weight: 600; flex-shrink: 0; }
+  .cursor-val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── States ── */
+  .state-box {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .state-icon { font-size: 36px; }
+  .state-title { font-size: 16px; font-weight: 600; }
+  .state-msg { font-size: 13.5px; color: var(--muted); max-width: 360px; }
+  .state-box .btn { margin-top: 8px; }
+
+  .err-box {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    color: var(--danger);
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header>
+  <div class="logo">Products<span>.</span></div>
+  <div class="api-badge">localhost:5000</div>
+</header>
+
+<div class="shell">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <input type="search" id="searchInput" placeholder="Search by name…" autocomplete="off">
+      <select id="categoryFilter" class="cat-select">
+        <option value="">All categories</option>
+      </select>
+      <select id="dirSelect" class="dir-select" disabled style="opacity:0.6;cursor:not-allowed";>
+        <option value="asc">Oldest first(disable)</option>
+        <option value="desc">Newest first</option>
+      </select>
+      <select id="limitSelect" class="limit-select">
+        <option value="12">12 per page</option>
+        <option value="20" selected>20 per page</option>
+        <option value="50">50 per page</option>
+        <option value="100">100 per page</option>
+      </select>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn" id="refreshBtn" title="Refresh">↺ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="err-box" id="errBox" style="display:none">
+    <span>⚠</span>
+    <span id="errMsg"></span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats" id="statsBar"></div>
+
+  <!-- Cursor debug bar -->
+  <div class="cursor-bar" id="cursorBar" style="display:none">
+    <label>cursor</label>
+    <span class="cursor-val" id="cursorVal"></span>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid" id="grid"></div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="paginationBar" style="display:none">
+    <button class="btn" id="prevBtn" disabled>← Previous</button>
+    <div class="page-info" id="pageInfo"></div>
+    <button class="btn btn-primary" id="nextBtn" disabled>Next →</button>
+  </div>
+
+</div>
+
+<script>
+const API       = '/api';
+const grid      = document.getElementById('grid');
+const statsBar  = document.getElementById('statsBar');
+const errBox    = document.getElementById('errBox');
+const errMsg    = document.getElementById('errMsg');
+const cursorBar = document.getElementById('cursorBar');
+const cursorVal = document.getElementById('cursorVal');
+const pageInfo  = document.getElementById('pageInfo');
+const pagBar    = document.getElementById('paginationBar');
+const nextBtn   = document.getElementById('nextBtn');
+const prevBtn   = document.getElementById('prevBtn');
+const catSel    = document.getElementById('categoryFilter');
+const dirSel    = document.getElementById('dirSelect');
+const limitSel  = document.getElementById('limitSelect');
+const searchIn  = document.getElementById('searchInput');
+const refreshBtn= document.getElementById('refreshBtn');
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const state = {
+  cursor:     null,    // current forward cursor
+  history:    [],      // stack of cursors for "back" navigation [ {cursor, firstId} ]
+  loading:    false,
+  totalSeen:  0,
+  page:       1,
+  searchTerm: '',
+};
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function fmt(price) {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+}
+
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function showErr(msg) {
+  errMsg.textContent = msg;
+  errBox.style.display = 'flex';
+}
+
+function clearErr() {
+  errBox.style.display = 'none';
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function renderSkeletons(n = 8) {
+  grid.innerHTML = Array.from({ length: n }, () => `
+    <div class="skeleton-card">
+      <div class="skel" style="height:13px;width:60%"></div>
+      <div class="skel" style="height:12px;width:40%"></div>
+      <div style="height:32px"></div>
+      <div class="skel" style="height:1px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <div class="skel" style="height:20px;width:70px"></div>
+        <div class="skel" style="height:11px;width:50px"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Category chip colours (deterministic from string) ─────────────────────────
+
+const CAT_COLORS = [
+  ['#EFF4FF','#2563EB'], ['#F0FDF4','#16A34A'], ['#FFF7ED','#EA580C'],
+  ['#FDF4FF','#9333EA'], ['#FFF1F2','#E11D48'], ['#F0FDFA','#0D9488'],
+];
+
+const catColorCache = {};
+function catColor(name) {
+  if (!catColorCache[name]) {
+    const idx = [...name].reduce((a,c) => a + c.charCodeAt(0), 0) % CAT_COLORS.length;
+    catColorCache[name] = CAT_COLORS[idx];
+  }
+  return catColorCache[name];
+}
+
+// ── Render cards ──────────────────────────────────────────────────────────────
+
+function renderCards(products, search) {
+  if (!products.length) {
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">🔍</div>
+        <div class="state-title">No products found</div>
+        <div class="state-msg">Try a different category or search term.</div>
+        <button class="btn" onclick="reset()">Clear filters</button>
+      </div>`;
+    return;
+  }
+
+  function hl(text) {
+    if (!search) return escHtml(text);
+    const re = new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return escHtml(text).replace(re, '<mark style="background:#fef08a;border-radius:2px">$1</mark>');
+  }
+
+  grid.innerHTML = products.map(p => {
+    const [bg, fg] = catColor(p.category);
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-name">${hl(p.name)}</div>
+          <div class="card-id">#${p.id}</div>
+        </div>
+        <div class="card-category" style="background:${bg};color:${fg}">${escHtml(p.category)}</div>
+        <div class="card-footer">
+          <div class="card-price">${fmt(p.price)}</div>
+          <div class="card-updated" title="${escHtml(p.updated_at)}">Updated ${timeAgo(p.updated_at)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Fetch products ────────────────────────────────────────────────────────────
+
+async function fetchProducts(cursor = null) {
+  if (state.loading) return;
+  state.loading = true;
+  clearErr();
+  renderSkeletons(parseInt(limitSel.value) || 20);
+  statsBar.innerHTML = '';
+  pagBar.style.display = 'none';
+  cursorBar.style.display = 'none';
+
+  const params = new URLSearchParams();
+  params.set('limit', limitSel.value);
+  // if (dirSel.value)    params.set('direction', dirSel.value);
+  if (catSel.value)    params.set('category',  catSel.value);
+  if (cursor)          params.set('cursor',     cursor);
+
+  try {
+    const res  = await fetch(`${API}/products?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} — ${res.statusText}`);
+    const json = await res.json();
+
+    if (!json.success) throw new Error(json.message || 'API returned success: false');
+
+    const { data, pagination } = json;
+    const search = state.searchTerm.toLowerCase();
+
+    // Client-side search filter (for name substring matching)
+    const filtered = search
+      ? data.filter(p => p.name.toLowerCase().includes(search))
+      : data;
+
+    renderCards(filtered, state.searchTerm);
+
+    // Stats
+    const total = pagination.count ?? filtered.length;
+    statsBar.innerHTML = `
+      <span>Showing <strong>${filtered.length}</strong> products</span>
+      ${catSel.value ? `<span>in <strong>${escHtml(catSel.value)}</strong></span>` : ''}
+      <span>· Page <strong>${state.page}</strong></span>
+      ${pagination.hasMore ? '' : '<span style="color:var(--green)">· End of results</span>'}
+    `;
+
+    // Cursor debug bar
+    if (pagination.nextCursor) {
+      cursorVal.textContent = pagination.nextCursor;
+      cursorBar.style.display = 'flex';
+    }
+
+    // Pagination controls
+    pagBar.style.display = 'flex';
+    nextBtn.disabled = !pagination.hasMore;
+    prevBtn.disabled = state.history.length === 0;
+    pageInfo.textContent = `Page ${state.page}`;
+
+    // Store current cursor for next/prev
+    state.cursor = pagination.nextCursor ?? null;
+
+    nextBtn.onclick = () => {
+      if (!pagination.nextCursor) return;
+      state.history.push(cursor);   // push current cursor (not next)
+      state.page++;
+      fetchProducts(pagination.nextCursor);
+    };
+
+    prevBtn.onclick = () => {
+      const prev = state.history.pop();
+      state.page--;
+      fetchProducts(prev ?? null);
+    };
+
+  } catch (err) {
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">🔌</div>
+        <div class="state-title">Can't reach the API</div>
+        <div class="state-msg">${escHtml(err.message)}</div>
+        <button class="btn btn-primary" onclick="fetchProducts()">Try again</button>
+      </div>`;
+    showErr(err.message);
+  } finally {
+    state.loading = false;
+  }
+}
+
+// ── Load categories ───────────────────────────────────────────────────────────
+
+async function loadCategories() {
+  try {
+    const res  = await fetch(`${API}/categories`);
+    if (!res.ok) return;
+    const json = await res.json();
+    const list = Array.isArray(json) ? json : (json.data ?? []);
+    list.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = cat;
+      catSel.appendChild(opt);
+    });
+  } catch { /* categories optional */ }
+}
+
+// ── Reset / filter helpers ────────────────────────────────────────────────────
+
+function reset() {
+  state.history  = [];
+  state.page     = 1;
+  state.cursor   = null;
+  catSel.value   = '';
+  searchIn.value = '';
+  dirSel.value   = 'asc';
+  state.searchTerm = '';
+  fetchProducts();
+}
+
+function filterReset() {
+  state.history = [];
+  state.page    = 1;
+  fetchProducts();
+}
+
+// ── Event listeners ───────────────────────────────────────────────────────────
+
+catSel.addEventListener('change', filterReset);
+dirSel.addEventListener('change', filterReset);
+limitSel.addEventListener('change', filterReset);
+refreshBtn.addEventListener('click', filterReset);
+
+let searchTimer;
+searchIn.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.searchTerm = searchIn.value.trim();
+    filterReset();
+  }, 280);
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+(async () => {
+  await loadCategories();
+  fetchProducts();
+})();
+</script>
+</body>
+</html>
